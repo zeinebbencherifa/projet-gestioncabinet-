@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cabinet Médical - Accueil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e8f4f8;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a4d7a;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #1a4d7a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #143d61;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 77, 122, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #1a4d7a;
+            border: 2px solid #1a4d7a;
+        }
+
+        .btn-outline:hover {
+            background: #1a4d7a;
+            color: white;
+        }
+
+        /* ========== HERO SECTION ========== */
+        .hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            color: #1a4d7a;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            color: #5a6c7d;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-illustration {
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            box-shadow: 0 10px 40px rgba(26, 77, 122, 0.15);
+        }
+
+        /* ========== PATIENTS SECTION ========== */
+        .features {
+            background: white;
+            padding: 80px 20px;
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            color: #1a4d7a;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #5a6c7d;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            background: #f8fcfd;
+            border-radius: 12px;
+            transition: all 0.3s;
+            border-left: 5px solid #1a4d7a;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            color: #1a4d7a;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #5a6c7d;
+            line-height: 1.6;
+        }
+
+        /* ========== STATS SECTION ========== */
+        .stats {
+            background: #1a4d7a;
+            padding: 60px 20px;
+        }
+
+        .stats-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item {
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* ========== CTA SECTION ========== */
+        .cta {
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .cta h2 {
+            font-size: 36px;
+            color: #1a4d7a;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            font-size: 18px;
+            color: #5a6c7d;
+            margin-bottom: 30px;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer p {
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 968px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 40px 20px;
+            }
+
+            .hero-content h1 {
+                font-size: 36px;
+            }
+
+            .hero-illustration {
+                height: 300px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="header-content">
+        <div class="logo">
+            <span class="logo-icon">🏥</span>
+            <span>Cabinet Médical</span>
+        </div>
+
+    </div>
+</header>
+
+<!-- HERO SECTION - MEDECINS -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Gérez votre cabinet médical en toute simplicité</h1>
+        <p>
+            Une plateforme moderne pour faciliter la gestion des rendez-vous,
+            le suivi des patients et l'organisation de votre pratique médicale.
+        </p>
+        <div class="hero-buttons">
+            <a href="/register" class="btn btn-primary">Commencer gratuitement</a>
+            <a href="/login" class="btn btn-outline">Se connecter</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="hero-illustration">
+            👨‍⚕️
+        </div>
+    </div>
+</section>
+
+<!-- HERO SECTION - PATIENTS -->
+<section class="hero" style="background: white;">
+    <div class="hero-content">
+        <h1>Prenez soin de votre santé facilement</h1>
+        <p>
+            Trouvez votre médecin, prenez rendez-vous en ligne et accédez à tous
+            vos documents médicaux depuis une seule plateforme sécurisée.
+        </p>
+        <div class="hero-buttons">
+            <a href="/register" class="btn btn-primary">S'inscrire comme patient</a>
+            <a href="/login" class="btn btn-outline">Se connecter</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="hero-illustration">
+            👤
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<!-- STATS SECTION -->
+<section class="stats">
+    <div class="stats-container">
+        <div class="stat-item">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Médecins</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">10k+</div>
+            <div class="stat-label">Patients</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">50k+</div>
+            <div class="stat-label">Rendez-vous</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">99%</div>
+            <div class="stat-label">Satisfaction</div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-content">
+        <p><strong>🏥 Cabinet Médical</strong></p>
+        <p>Plateforme de gestion médicale</p>
+        <p style="margin-top: 20px; opacity: 0.7;">
+            © 2024 Cabinet Médical. Tous droits réservés.
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>

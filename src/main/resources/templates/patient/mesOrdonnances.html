@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mes Ordonnances et Rapports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e8f4f8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: #1a4d7a;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #5a6c7d;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.3s;
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #5a6c7d;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .ordonnances-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .ordonnance-card {
+            background: #f8fcfd;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+        }
+
+        .ordonnance-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .ordonnance-card.rapport {
+            border-left-color: #00a86b;
+            background: #f0fdf4;
+        }
+
+        .ordonnance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .ordonnance-type {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .type-ordonnance {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .type-rapport {
+            background: linear-gradient(135deg, #00a86b 0%, #00d084 100%);
+        }
+
+        .ordonnance-date {
+            color: #5a6c7d;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .medecin-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e8f4f8;
+        }
+
+        .medecin-name {
+            font-weight: bold;
+            color: #1a4d7a;
+            margin-bottom: 5px;
+        }
+
+        .info-section {
+            margin: 15px 0;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-content {
+            color: #5a6c7d;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            border: 1px solid #e8f4f8;
+        }
+
+        .ordonnance-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-download {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-download:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #95a5a6;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .ordonnance-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>📋 Mes Ordonnances et Rapports Médicaux</h1>
+                <p class="subtitle">Consultez et téléchargez vos documents médicaux</p>
+            </div>
+            <a th:href="@{/patient/dashboard}" class="btn btn-secondary">⬅️ Retour</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" th:text="${ordonnances != null ? ordonnances.size() : 0}">0</div>
+            <div class="stat-label">📄 Total documents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"
+                 th:text="${ordonnances != null ? #lists.size(#lists.where(ordonnances, 'type == T(com.example.cabinetgestion.entities.Ordonnance$TypeDocument).ORDONNANCE')) : 0}">0</div>
+            <div class="stat-label">💊 Ordonnances</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"
+                 th:text="${ordonnances != null ? #lists.size(#lists.where(ordonnances, 'type == T(com.example.cabinetgestion.entities.Ordonnance$TypeDocument).RAPPORT_MEDICAL')) : 0}">0</div>
+            <div class="stat-label">📋 Rapports</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="ordonnances-grid" th:if="${ordonnances != null and !ordonnances.isEmpty()}">
+            <div class="ordonnance-card"
+                 th:each="ord : ${ordonnances}"
+                 th:classappend="${ord.type.toString() == 'RAPPORT_MEDICAL'} ? 'rapport' : ''">
+
+                <div class="ordonnance-header">
+                    <span class="ordonnance-type"
+                          th:classappend="${ord.type.toString() == 'ORDONNANCE'} ? 'type-ordonnance' : 'type-rapport'"
+                          th:text="${ord.type.toString() == 'ORDONNANCE'} ? '💊 Ordonnance' : '📋 Rapport Médical'">
+                    </span>
+                    <div class="ordonnance-date">
+                        📅 <span th:text="${#temporals.format(ord.dateCreation, 'dd/MM/yyyy à HH:mm')}"></span>
+                    </div>
+                </div>
+
+                <div class="medecin-info">
+                    <div class="medecin-name">
+                        👨‍⚕️ Dr. <span th:text="${ord.medecin.prenom} + ' ' + ${ord.medecin.nom}"></span>
+                    </div>
+                    <div style="font-size: 13px; color: #5a6c7d;">
+                        <span th:text="${ord.medecin.email}"></span>
+                    </div>
+                </div>
+
+                <div class="info-section" th:if="${ord.diagnostic != null and !ord.diagnostic.isEmpty()}">
+                    <div class="info-label">🔍 Diagnostic</div>
+                    <div class="info-content" th:text="${ord.diagnostic}"></div>
+                </div>
+
+                <div class="info-section" th:if="${ord.contenu != null and !ord.contenu.isEmpty()}">
+                    <div class="info-label"
+                         th:text="${ord.type.toString() == 'ORDONNANCE'} ? '💊 Prescription' : '📝 Observations'">
+                    </div>
+                    <div class="info-content" th:text="${ord.contenu}"></div>
+                </div>
+
+                <div class="info-section" th:if="${ord.recommandations != null and !ord.recommandations.isEmpty()}">
+                    <div class="info-label">💡 Recommandations</div>
+                    <div class="info-content" th:text="${ord.recommandations}"></div>
+                </div>
+
+                <div class="info-section" th:if="${ord.observations != null and !ord.observations.isEmpty()}">
+                    <div class="info-label">📌 Observations</div>
+                    <div class="info-content" th:text="${ord.observations}"></div>
+                </div>
+
+                <div class="ordonnance-actions">
+                    <a th:href="@{/medecin/ordonnance/export/{id}(id=${ord.id})}"
+                       class="btn-download">
+                        📥 Télécharger PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${ordonnances == null or ordonnances.isEmpty()}">
+            <div class="empty-icon">📭</div>
+            <p class="empty-text">Aucun document médical pour le moment</p>
+            <p class="empty-subtext">Vos ordonnances et rapports médicaux apparaîtront ici</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

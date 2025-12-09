@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f6fb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: #ffffff;
+            padding: 40px 45px;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid #e5e9f2;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            color: #243056;
+            margin-bottom: 30px;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-weight: 600;
+            color: #243056;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            margin-top: 8px;
+            padding: 13px 16px;
+            border: 1.6px solid #cdd6e5;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: 0.25s ease;
+            background: #f8f9fc;
+        }
+
+        input:focus {
+            background: #ffffff;
+            border-color: #4c70ff;
+            box-shadow: 0 0 0 3px rgba(76, 112, 255, 0.15);
+            outline: none;
+        }
+
+        button {
+            margin-top: 30px;
+            width: 100%;
+            padding: 15px;
+            background: #4c70ff;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background: #3258e6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 112, 255, 0.35);
+        }
+
+        .error {
+            margin-top: 12px;
+            padding: 12px;
+            background: #ffe5e5;
+            border-left: 4px solid #ff4a4a;
+            color: #c0392b;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .link-container {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 14px;
+            color: #4b5874;
+        }
+
+        .link-container a {
+            color: #4c70ff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+
+        .link-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="form-container">
+    <form th:action="@{/login}" method="post">
+        <h2>Connexion</h2>
+
+        <label>Nom d'utilisateur :</label>
+        <input type="text" name="username" required>
+
+        <label>Mot de passe :</label>
+        <input type="password" name="password" required>
+
+        <button type="submit">Se connecter</button>
+
+        <div th:if="${param.error}" class="error">
+            Email ou mot de passe incorrect
+        </div>
+
+        <p class="link-container">
+            Pas encore de compte ?
+            <a th:href="@{/register}">Créer un compte</a>
+        </p>
+    </form>
+</div>
+
+</body>
+</html>

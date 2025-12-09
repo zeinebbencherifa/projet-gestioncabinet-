@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Modifier un Rendez-vous</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            color: #1a237e;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-top: 5px;
+            background: #f9f9f9;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            background: white;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            border: none;
+            margin-top: 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        }
+
+        a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #764ba2;
+        }
+
+        .back {
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h2>✏️ Modifier le Rendez-vous</h2>
+
+    <form th:action="@{/medecin/rdv/up}" method="post">
+
+        <!-- Champ ID caché -->
+        <input type="hidden" name="id" th:value="${rdv.id}">
+
+        <label>Patient :</label>
+        <select name="patientId" required>
+            <option th:each="p : ${patients}"
+                    th:value="${p.id}"
+                    th:text="${p.nom + ' ' + p.prenom}"
+                    th:selected="${p.id == rdv.patient.id}">
+            </option>
+        </select>
+
+        <label>Date :</label>
+        <input type="date" name="dateRdv" th:value="${rdv.dateRdv}" required>
+
+        <label>Heure :</label>
+        <input type="time" name="heureRdv" th:value="${rdv.heureRdv}" required>
+
+        <label>Motif du rendez-vous :</label>
+        <textarea name="motif" rows="4" th:text="${rdv.motif}" placeholder="Décrivez le motif de la consultation..."></textarea>
+
+        <button type="submit">💾 Mettre à jour</button>
+
+        <div class="back">
+            <a th:href="@{/medecin/home}">⬅ Retour au tableau de bord</a>
+        </div>
+    </form>
+
+</div>
+
+</body>
+</html>

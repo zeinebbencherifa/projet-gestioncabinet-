@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Ajouter un Rendez-vous</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            max-width: 750px;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            color: #1a237e;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: #1a237e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-top: 5px;
+            background: #f9f9f9;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            background: white;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            border: none;
+            margin-top: 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        }
+
+        a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #764ba2;
+        }
+
+        .add-btn {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+
+        .add-btn:hover {
+            box-shadow: 0 4px 14px rgba(102,126,234,0.4);
+            transform: translateY(-2px);
+        }
+
+        .patient-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* SECTION DOCUMENTS */
+        .documents-section {
+            background: #f8f9fe;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border: 2px dashed #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .file-input-label:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .file-names {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #666;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1565C0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h2>📅 Ajouter un Rendez-vous</h2>
+
+    <!-- FORMULAIRE RDV avec support multipart -->
+    <form th:action="@{/medecin/ajouterRdv}" method="post" enctype="multipart/form-data">
+
+        <h3>📋 Informations du rendez-vous</h3>
+
+        <!-- Patient -->
+        <label for="patient">Sélectionner un patient :</label>
+        <div class="patient-row">
+            <select id="patient" name="patientId" required>
+                <option value="">-- Choisir un patient --</option>
+                <option th:each="p : ${patients}"
+                        th:value="${p.id}"
+                        th:text="${p.nom + ' ' + p.prenom}">
+                </option>
+            </select>
+            <a th:href="@{/medecin/patient/ajouter(returnTo='rdv')}" class="add-btn">+ Ajouter</a>
+        </div>
+
+        <!-- Date -->
+        <label>Date du rendez-vous :</label>
+        <input type="date" name="dateRdv" required>
+
+        <!-- Heure -->
+        <label>Heure du rendez-vous :</label>
+        <input type="time" name="heureRdv" required>
+
+        <!-- Motif -->
+        <label>Motif :</label>
+        <textarea name="motif" rows="3" placeholder="Motif du rendez-vous..."></textarea>
+
+        <!-- SECTION DOCUMENTS -->
+        <div class="documents-section">
+            <h3>📄 Documents médicaux (optionnel)</h3>
+
+            <label for="typeDocument">Type de document :</label>
+            <select id="typeDocument" name="typeDocument">
+                <option value="">-- Sélectionner un type --</option>
+                <option value="ORDONNANCE">Ordonnance</option>
+                <option value="ANALYSE">Analyse</option>
+                <option value="RADIO">Radio / Imagerie</option>
+                <option value="RAPPORT">Rapport médical</option>
+                <option value="AUTRE">Autre</option>
+            </select>
+
+            <label for="description">Description des documents :</label>
+            <textarea id="description"
+                      name="description"
+                      rows="2"
+                      placeholder="Ex: Résultats d'analyse sanguine, Radio du genou..."></textarea>
+
+            <label>Fichiers :</label>
+            <div class="file-input-wrapper">
+                <input type="file"
+                       id="files"
+                       name="files"
+                       multiple
+                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                       onchange="displayFileNames(this)">
+                <label for="files" class="file-input-label">
+                    <span>📎</span>
+                    <span>Cliquez pour sélectionner des fichiers</span>
+                </label>
+            </div>
+
+            <div id="fileNames" class="file-names" style="display: none;"></div>
+
+            <div class="info-box">
+                💡 <strong>Info :</strong> Vous pouvez ajouter plusieurs documents (PDF, images, Word).
+                Les documents seront associés au patient sélectionné.
+            </div>
+        </div>
+
+        <button type="submit">💾 Enregistrer le Rendez-vous</button>
+
+        <p style="text-align: center; margin-top: 15px;">
+            <a th:href="@{/medecin/home}">⬅ Retour au tableau de bord</a>
+        </p>
+
+    </form>
+
+</div>
+
+<script>
+    function displayFileNames(input) {
+        const fileNamesDiv = document.getElementById('fileNames');
+
+        if (input.files.length > 0) {
+            let html = '<strong>Fichiers sélectionnés :</strong><br>';
+            for (let i = 0; i < input.files.length; i++) {
+                html += '<div class="file-item">📄 ' + input.files[i].name + '</div>';
+            }
+            fileNamesDiv.innerHTML = html;
+            fileNamesDiv.style.display = 'block';
+        } else {
+            fileNamesDiv.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>

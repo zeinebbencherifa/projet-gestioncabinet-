@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f6fb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: #ffffff;
+            padding: 40px 45px;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid #e5e9f2;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            color: #243056;
+            margin-bottom: 30px;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-weight: 600;
+            color: #243056;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            margin-top: 8px;
+            padding: 13px 16px;
+            border: 1.6px solid #cdd6e5;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: 0.25s ease;
+            background: #f8f9fc;
+        }
+
+        input:focus, select:focus {
+            background: #ffffff;
+            border-color: #4c70ff;
+            box-shadow: 0 0 0 3px rgba(76, 112, 255, 0.15);
+            outline: none;
+        }
+
+        #specialiteContainer {
+            margin-top: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 200px; }
+        }
+
+        button {
+            margin-top: 30px;
+            width: 100%;
+            padding: 15px;
+            background: #4c70ff;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background: #3258e6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 112, 255, 0.35);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .link-container {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 14px;
+            color: #4b5874;
+        }
+
+        .link-container a {
+            color: #4c70ff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+
+        .link-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="form-container">
+    <form action="/register" method="post">
+        <h2>Inscription</h2>
+
+        <label>Nom :</label>
+        <input type="text" name="nom" required placeholder="Votre nom">
+
+        <label>Prénom :</label>
+        <input type="text" name="prenom" required placeholder="Votre prénom">
+
+        <label>Email :</label>
+        <input type="email" name="email" required placeholder="votre.email@exemple.com">
+
+        <label>Mot de passe :</label>
+        <input type="password" name="motDePasse" required minlength="6" placeholder="Minimum 6 caractères">
+
+        <label>Rôle :</label>
+        <select name="role" id="roleSelect" required>
+            <option value="">-- Sélectionner un rôle --</option>
+            <option value="PATIENT">Patient</option>
+            <option value="MEDECIN">Médecin</option>
+        </select>
+
+        <div id="specialiteContainer" style="display:none;">
+            <label>Spécialité :</label>
+            <select name="specialite" id="specialiteSelect">
+                <option value="">-- Sélectionner une spécialité --</option>
+                <option th:each="spec : ${T(com.example.cabinetgestion.entities.Specialite).values()}"
+                        th:value="${spec}"
+                        th:text="${spec.label}">
+                </option>
+            </select>
+        </div>
+
+        <button type="submit">Créer mon compte</button>
+
+        <p class="link-container">
+            Déjà inscrit ? <a href="/login">Se connecter</a>
+        </p>
+    </form>
+</div>
+
+<script>
+    const roleSelect = document.getElementById("roleSelect");
+    const specialiteDiv = document.getElementById("specialiteContainer");
+    const specialiteSelect = document.getElementById("specialiteSelect");
+
+    roleSelect.addEventListener("change", function () {
+        if (this.value === "MEDECIN") {
+            specialiteDiv.style.display = "block";
+            specialiteSelect.required = true;
+        } else {
+            specialiteDiv.style.display = "none";
+            specialiteSelect.required = false;
+            specialiteSelect.value = "";
+        }
+    });
+</script>
+
+</body>
+</html>
