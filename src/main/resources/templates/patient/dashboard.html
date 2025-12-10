@@ -213,31 +213,13 @@
             box-shadow: 0 0 0 3px rgba(26, 77, 122, 0.1);
         }
 
-        .search-btn {
-            background: #1a4d7a;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .search-btn:hover {
-            background: #143d61;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(26, 77, 122, 0.3);
-        }
-
         .reset-btn {
             background: #95a5a6;
             color: white;
             padding: 12px 20px;
             border-radius: 8px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
+            border: none;
+            cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
         }
@@ -314,6 +296,18 @@
             padding: 40px;
             color: #95a5a6;
             font-style: italic;
+        }
+
+        /* ========== LOADING SPINNER ========== */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #1a4d7a;
+        }
+
+        .loading.active {
+            display: block;
         }
 
         /* ========== RESPONSIVE ========== */
@@ -399,23 +393,27 @@
         <h2 class="section-title">👨‍⚕️ Nos Médecins</h2>
 
         <!-- Barre de recherche -->
-        <form th:action="@{/patient/dashboard}" method="get" class="search-container">
+        <div class="search-container">
             <input type="text"
-                   name="motCle"
+                   id="searchInput"
                    class="search-box"
                    placeholder="🔍 Rechercher par nom, prénom ou spécialité..."
-                   th:value="${motCle}">
-            <button type="submit" class="search-btn">🔍 Rechercher</button>
-            <a th:href="@{/patient/dashboard}" class="reset-btn">🔄 Réinitialiser</a>
-        </form>
+                   autocomplete="off">
+            <button type="button" id="resetBtn" class="reset-btn">🔄 Réinitialiser</button>
+        </div>
+
+        <!-- Indicateur de chargement -->
+        <div class="loading" id="loading">
+            ⏳ Recherche en cours...
+        </div>
 
         <!-- Affichage du critère de recherche -->
-        <div class="search-info" th:if="${motCle != null && !motCle.isEmpty()}">
-            <strong>Recherche pour :</strong> "<span th:text="${motCle}"></span>"
+        <div class="search-info" id="searchInfo" style="display: none;">
+            <strong>Recherche pour :</strong> "<span id="searchTerm"></span>"
         </div>
 
         <!-- Liste des médecins -->
-        <div class="medecins-grid" th:if="${medecins != null && !medecins.isEmpty()}">
+        <div class="medecins-grid" id="medecinsContainer">
             <div class="medecin-card" th:each="medecin : ${medecins}">
                 <h3 th:text="${'Dr. ' + medecin.nom + ' ' + medecin.prenom}"></h3>
 
@@ -435,14 +433,122 @@
         </div>
 
         <!-- Message si aucun résultat -->
-        <div class="no-results" th:if="${medecins == null || medecins.isEmpty()}">
+        <div class="no-results" id="noResults" style="display: none;">
             <p>😕 Aucun médecin trouvé</p>
-            <p th:if="${motCle != null && !motCle.isEmpty()}">
-                Essayez avec un autre critère de recherche
-            </p>
+            <p>Essayez avec un autre critère de recherche</p>
         </div>
     </div>
 </div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const resetBtn = document.getElementById('resetBtn');
+    const medecinsContainer = document.getElementById('medecinsContainer');
+    const loading = document.getElementById('loading');
+    const searchInfo = document.getElementById('searchInfo');
+    const searchTerm = document.getElementById('searchTerm');
+    const noResults = document.getElementById('noResults');
+
+    let searchTimeout;
+
+    // Recherche dynamique avec délai (debounce)
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        searchTimeout = setTimeout(() => {
+            rechercherMedecins(query);
+        }, 300); // Attend 300ms après que l'utilisateur arrête de taper
+    });
+
+    // Bouton réinitialiser
+    resetBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        rechercherMedecins('');
+    });
+
+    // Fonction de recherche AJAX
+    function rechercherMedecins(motCle) {
+        // Afficher le loading
+        loading.classList.add('active');
+        medecinsContainer.style.display = 'none';
+        noResults.style.display = 'none';
+
+        // Construire l'URL
+        const url = `/patient/medecins/rechercher?motCle=${encodeURIComponent(motCle)}`;
+
+        // Faire la requête AJAX
+        fetch(url)
+            .then(response => response.json())
+            .then(medecins => {
+                // Cacher le loading
+                loading.classList.remove('active');
+
+                // Afficher/cacher l'info de recherche
+                if (motCle) {
+                    searchInfo.style.display = 'block';
+                    searchTerm.textContent = motCle;
+                } else {
+                    searchInfo.style.display = 'none';
+                }
+
+                // Afficher les résultats
+                if (medecins.length > 0) {
+                    afficherMedecins(medecins);
+                    medecinsContainer.style.display = 'grid';
+                    noResults.style.display = 'none';
+                } else {
+                    medecinsContainer.style.display = 'none';
+                    noResults.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la recherche:', error);
+                loading.classList.remove('active');
+                medecinsContainer.style.display = 'none';
+                noResults.style.display = 'block';
+            });
+    }
+
+    // Fonction pour afficher les médecins
+    function afficherMedecins(medecins) {
+        medecinsContainer.innerHTML = '';
+
+        medecins.forEach(medecin => {
+            const card = document.createElement('div');
+            card.className = 'medecin-card';
+
+            let specialiteHtml = '';
+            if (medecin.specialite) {
+                specialiteHtml = `
+                    <p>
+                        <strong>🩺 Spécialité :</strong>
+                        <span>${medecin.specialite}</span>
+                    </p>
+                `;
+            }
+
+            let emailHtml = '';
+            if (medecin.email) {
+                emailHtml = `
+                    <p>
+                        <strong>📧 Email :</strong>
+                        <span>${medecin.email}</span>
+                    </p>
+                `;
+            }
+
+            card.innerHTML = `
+                <h3>Dr. ${medecin.nom} ${medecin.prenom}</h3>
+                ${specialiteHtml}
+                ${emailHtml}
+                <a href="/patient/prendre-rdv/${medecin.id}" class="btn">📅 Prendre RDV</a>
+            `;
+
+            medecinsContainer.appendChild(card);
+        });
+    }
+</script>
 
 </body>
 </html>

@@ -68,7 +68,7 @@ public class AuthControlleur {
         }
 
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("PATIENT"))) {
-            return "redirect:/patient/home";
+            return "redirect:/patient/dashboard";
         }
 
         return "redirect:/";
