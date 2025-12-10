@@ -17,9 +17,7 @@ public class DocumentController {
 
     private final DocumentService documentService;
 
-    /**
-     * Upload documents (depuis ton modal)
-     */
+
     @PostMapping("/upload")
     public String uploadDocument(@RequestParam("patientId") Long patientId,
                                  @RequestParam("typeDocument") String typeDocument,
@@ -38,9 +36,7 @@ public class DocumentController {
         return "redirect:/patients/details/" + patientId;
     }
 
-    /**
-     * Liste des documents d’un patient
-     */
+
     @GetMapping("/patient/{id}")
     public String getDocumentsByPatient(@PathVariable Long id, Model model) {
         List<Document> documents = documentService.getDocumentsByPatient(id);
@@ -51,9 +47,7 @@ public class DocumentController {
         return "documents/liste"; // tu peux changer selon ta vue
     }
 
-    /**
-     * Supprimer un document
-     */
+
     @GetMapping("/delete/{id}")
     public String deleteDocument(@PathVariable Long id,
                                  @RequestParam("patientId") Long patientId) {

@@ -2,6 +2,7 @@ package com.example.cabinetgestion.controlleur;
 
 import com.example.cabinetgestion.entities.Document;
 import com.example.cabinetgestion.entities.Rdv;
+import com.example.cabinetgestion.entities.Role;
 import com.example.cabinetgestion.entities.Utilisateur;
 import com.example.cabinetgestion.service.ServiceRdv;
 import com.example.cabinetgestion.service.ServiceUtilisateur;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,29 +31,29 @@ import java.util.Map;
 
 @Controller
 @AllArgsConstructor
+@RequestMapping("/medecin")
 public class MedecinController {
 
     private final ServiceUtilisateur serviceUtilisateur;
     private final ServiceRdv serviceRdv;
     private final DocumentService documentService;
 
-    // ========== PAGE D'ACCUEIL MÉDECIN ==========
+    // page principale du medecin
     @GetMapping({"/home", "/medecin/home"})
     public String home(Model model,
                        Principal principal,
                        @RequestParam(required = false) String motCle) {
 
-        // Récupérer le médecin connecté
+        // Récupérer le médecin connecte
         Utilisateur medecin = serviceUtilisateur
                 .getUtilisateursByEmail(principal.getName())
                 .get(0);
+        //statistiques
 
-        // RDV EN ATTENTE (nouveaux)
+        // RDV EN ATTENTE
         List<Rdv> rdvEnAttente = serviceRdv.getRdvEnAttente(medecin.getId());
-
         // RDV du jour
         List<Rdv> rdvDuJour = serviceRdv.getRdvDuJour(medecin.getId());
-
         // Tous les RDV du médecin
         List<Rdv> mesRdv = serviceRdv.getRdvParMedecin(medecin.getId());
 
@@ -65,6 +67,7 @@ public class MedecinController {
         }
 
         // Pour chaque RDV, récupérer les documents du patient
+        //creer un map avec qui récupere les documents des patients
         Map<Long, List<Document>> documentsParPatient = new HashMap<>();
         for (Rdv rdv : mesRdv) {
             Long patientId = rdv.getPatient().getId();
@@ -84,16 +87,35 @@ public class MedecinController {
 
         return "medecin/home";
     }
-
-    // ========== GESTION DES RDV ==========
-
-    // Formulaire d'ajout de RDV
-    @GetMapping("/medecin/ajouterRdv")
-    public String ajouterRdvForm(Model model, Principal principal) {
-
+    @PostMapping("/save")
+    public String savePatient(
+            @ModelAttribute Utilisateur patient,
+            @RequestParam(required = false) String returnTo,
+            Principal principal) {
+        patient.setRole(Role.PATIENT);
         Utilisateur medecin = serviceUtilisateur
                 .getUtilisateursByEmail(principal.getName())
                 .get(0);
+
+        patient.setMedecinCreateur(medecin);
+        Utilisateur savedPatient = serviceUtilisateur.saveUtilisateur(patient);
+        if ("rdv".equals(returnTo)) {
+            return "redirect:/medecin/ajouterRdv?success=patientCreated";
+        }
+
+        return "redirect:/medecin/home?success=patientSaved";
+    }
+
+
+    // Formulaire d'ajout des RDV
+    @GetMapping("/ajouterRdv")
+    //principal hiya teebaa   springsecurity pour montrer  l'utilisateur connecte
+    public String ajouterRdvForm(Model model, Principal principal) {
+//traj3lek l'utulisateur connecter
+        Utilisateur medecin = serviceUtilisateur
+                .getUtilisateursByEmail(principal.getName())
+                .get(0);
+        //trajaalek liste des patients lel medcins heka
 
         List<Utilisateur> patients = serviceUtilisateur.getPatientsPourMedecin(medecin.getId());
 
@@ -103,8 +125,8 @@ public class MedecinController {
         return "medecin/ajouterRdv";
     }
 
-    // ✅ AJOUT DE RDV PAR LE MÉDECIN - CORRIGÉ
-    @PostMapping("/medecin/ajouterRdv")
+
+    @PostMapping("/ajouterRdv")
     public String ajouterRdvSubmit(@RequestParam("patientId") Long patientId,
                                    @RequestParam("dateRdv") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateRdv,
                                    @RequestParam("heureRdv") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heureRdv,
@@ -117,41 +139,36 @@ public class MedecinController {
 
         Utilisateur patient = serviceUtilisateur.getUtilisateur(patientId);
 
-        // ✅ Créer le RDV manuellement
+        //on creer un rdv manuellement car le statut lezm ykoun définis comme accepter
         Rdv rdv = new Rdv();
         rdv.setPatient(patient);
         rdv.setMedecin(medecin);
         rdv.setDateRdv(dateRdv);
         rdv.setHeureRdv(heureRdv);
         rdv.setMotif(motif);
-        // PAS de setStatus() ici !
 
-        // ✅ Utiliser la méthode dédiée (statut = ACCEPTE automatiquement)
+
         serviceRdv.saveRdvParMedecin(rdv);
 
         return "redirect:/medecin/home?success=rdvAdded";
     }
 
     // Formulaire de modification de RDV
-    @GetMapping("/medecin/rdv/edit/{id}")
+    @GetMapping("/rdv/edit/{id}")
     public String editRdv(Model model, @PathVariable Long id, Principal principal) {
-
         Rdv rdv = serviceRdv.getRdv(id);
-
         Utilisateur medecin = serviceUtilisateur
                 .getUtilisateursByEmail(principal.getName())
                 .get(0);
 
         List<Utilisateur> patients = serviceUtilisateur.getPatientsPourMedecin(medecin.getId());
-
         model.addAttribute("rdv", rdv);
         model.addAttribute("patients", patients);
-
         return "medecin/editRdv";
     }
 
-    // ✅ MODIFICATION DE RDV PAR LE MÉDECIN - CORRIGÉ
-    @PostMapping("/medecin/rdv/up")
+    //
+    @PostMapping("/rdv/up")
     public String updateRdv(@RequestParam("id") Long id,
                             @RequestParam("patientId") Long patientId,
                             @RequestParam("dateRdv") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateRdv,
@@ -164,59 +181,52 @@ public class MedecinController {
                 .get(0);
 
         Utilisateur patient = serviceUtilisateur.getUtilisateur(patientId);
-
-        // ✅ Récupérer le RDV existant
         Rdv rdv = serviceRdv.getRdv(id);
         rdv.setPatient(patient);
         rdv.setMedecin(medecin);
         rdv.setDateRdv(dateRdv);
         rdv.setHeureRdv(heureRdv);
         rdv.setMotif(motif);
-        // PAS de setStatus() ici !
 
-        // ✅ Utiliser la méthode dédiée
         serviceRdv.saveRdvParMedecin(rdv);
 
         return "redirect:/medecin/home?success=rdvUpdated";
     }
 
-    // ✅ ACCEPTER UN RDV
-    @PostMapping("/medecin/accepter-rdv/{id}")
+
+    @PostMapping("/accepter-rdv/{id}")
     public String accepterRdv(@PathVariable Long id) {
         serviceRdv.accepterRendezVous(id);
         return "redirect:/medecin/home?success=accepted";
     }
 
-    // ✅ REFUSER UN RDV
-    @PostMapping("/medecin/refuser-rdv/{id}")
+
+    @PostMapping("/refuser-rdv/{id}")
     public String refuserRdv(@PathVariable Long id) {
         serviceRdv.refuserRendezVous(id);
         return "redirect:/medecin/home?success=refused";
     }
 
-    // Suppression de RDV
-    @PostMapping("/medecin/rdv/supprimer/{id}")
+
+    @PostMapping("/rdv/supprimer/{id}")
     public String supprimerRdv(@PathVariable Long id) {
         serviceRdv.supprimerRdvr(id);
         return "redirect:/medecin/home?success=rdvDeleted";
     }
 
-    // ========== GESTION DES PATIENTS ==========
 
-    // Formulaire de modification de patient
-    @GetMapping("/medecin/patient/edit/{id}")
+    @GetMapping("/patient/edit/{id}")
     public String editPatient(Model model, @PathVariable Long id) {
         Utilisateur patient = serviceUtilisateur.getUtilisateur(id);
         model.addAttribute("patient", patient);
         return "medecin/editPatient";
     }
 
-    // Soumission de modification de patient
-    @PostMapping("/medecin/patient/up")
+    @PostMapping("/patient/up")
     public String updatePatient(@ModelAttribute Utilisateur patient) {
-        // Récupérer le patient existant pour garder certaines infos
+        // Récuperer  le patient existant pour garder lesinfos
         Utilisateur existing = serviceUtilisateur.getUtilisateur(patient.getId());
-
+//le role ne soit pas etre changer donc on le set nous meme, et le medecins créateur
         patient.setRole(existing.getRole());
         patient.setMedecinCreateur(existing.getMedecinCreateur());
 
@@ -230,16 +240,16 @@ public class MedecinController {
     }
 
     // Suppression de patient
-    @PostMapping("/medecin/patient/supprimer/{id}")
+    @PostMapping("/patient/supprimer/{id}")
     public String supprimerPatient(@PathVariable Long id) {
         serviceUtilisateur.supprimerUtilisateur(id);
         return "redirect:/medecin/home?success=patientDeleted";
     }
 
-    // ========== RECHERCHE ==========
 
-    // API de recherche de patients (optionnel - pour AJAX)
-    @GetMapping("/medecin/patients/rechercher")
+
+
+    @GetMapping("/patients/rechercher")
     @ResponseBody
     public List<Utilisateur> rechercherPatients(@RequestParam("motCle") String motCle,
                                                 Principal principal) {
@@ -255,9 +265,9 @@ public class MedecinController {
         return serviceUtilisateur.rechercherPatients(medecin.getId(), motCle.trim());
     }
 
-    // ========== GESTION DES DOCUMENTS ==========
 
-    @GetMapping("/medecin/telecharger-document/{documentId}")
+
+    @GetMapping("/telecharger-document/{documentId}")
     public ResponseEntity<Resource> telechargerDocument(@PathVariable Long documentId) {
         try {
             // Récupérer le document depuis la base de données
@@ -280,11 +290,17 @@ public class MedecinController {
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
-
+//envoye une reponse http 200 0OK
             return ResponseEntity.ok()
+                    //declarer le type du fichier
+                    //converti le content type en objetspring mediatype
+
                     .contentType(MediaType.parseMediaType(contentType))
+                    //indication pour le nab=vigateur pour qu'il telacherger le document avec le nom du fichier
+                    //attachment hiya eli tkhalina netachergiw
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=\"" + document.getFileName() + "\"")
+                    //le cors est le fichier réél envoyer par la ressource
                     .body(resource);
 
         } catch (Exception e) {
@@ -293,7 +309,7 @@ public class MedecinController {
     }
 
     // Voir le document dans le navigateur
-    @GetMapping("/medecin/voir-document/{documentId}")
+    @GetMapping("/voir-document/{documentId}")
     public ResponseEntity<Resource> voirDocument(@PathVariable Long documentId) {
         try {
             Document document = documentService.getDocumentById(documentId);
@@ -314,7 +330,7 @@ public class MedecinController {
                 contentType = "application/octet-stream";
             }
 
-            // inline au lieu de attachment pour afficher dans le navigateur
+            // inline besh najmou nchoufouh ala navigateur
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION,

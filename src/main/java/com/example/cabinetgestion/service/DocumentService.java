@@ -36,11 +36,12 @@ public class DocumentService implements IserviceDocument {
                 .orElseThrow(() -> new RuntimeException("Patient introuvable"));
 
         try {
-            // Créer dossier uploads si non existant
+
             Files.createDirectories(Paths.get(UPLOAD_DIR));
 
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             String filePath = UPLOAD_DIR + fileName;
+            //sauvgarde dans le disque physique
 
             file.transferTo(new File(filePath));
 

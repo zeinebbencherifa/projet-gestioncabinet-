@@ -24,24 +24,20 @@ public class PatientController {
     private final DocumentService documentService;
     private final ServiceRdv serviceRdv;
 
-    // ========== PAGE D'ACCUEIL PATIENT AVEC RECHERCHE ==========
-    @GetMapping({"/dashboard", "/home"})
+
+    @GetMapping({"/dashboard"})
     public String dashboard(Model model,
                             Principal principal,
-                            @RequestParam(required = false) String motCle) {  // ✅ Ajout du paramètre
+                            @RequestParam(required = false) String motCle) {
 
         Utilisateur patient = serviceUtilisateur
                 .getUtilisateursByEmail(principal.getName())
                 .get(0);
 
-        // ✅ Liste des médecins avec recherche
-        List<Utilisateur> medecins;
-        if (motCle != null && !motCle.trim().isEmpty()) {
-            medecins = serviceUtilisateur.rechercherMedecins(motCle);
-            model.addAttribute("motCle", motCle);
-        } else {
-            medecins = serviceUtilisateur.getAllMedecins();
-        }
+
+        List<Utilisateur> medecins = serviceUtilisateur.getAllMedecins();
+        model.addAttribute("medecins", medecins);
+
 
         // RDV du patient
         List<Rdv> mesRdv = serviceRdv.getRdvParPatient(patient.getId());
@@ -53,7 +49,7 @@ public class PatientController {
         return "patient/dashboard";
     }
 
-    // ✅ NOUVELLE ROUTE : API de recherche pour AJAX (optionnel)
+
     @GetMapping("/medecins/rechercher")
     @ResponseBody
     public List<Utilisateur> rechercherMedecins(@RequestParam("motCle") String motCle) {
@@ -63,7 +59,7 @@ public class PatientController {
         return serviceUtilisateur.rechercherMedecins(motCle);
     }
 
-    // ========== GESTION DES RDV ==========
+
 
     @GetMapping("/prendre-rdv/{medecinId}")
     public String prendreRdvForm(@PathVariable Long medecinId, Model model, Principal principal) {
@@ -117,31 +113,5 @@ public class PatientController {
         return "redirect:/patient/dashboard?success=cancelled";
     }
 
-    @PostMapping("/save")
-    public String savePatient(@ModelAttribute Utilisateur patient,
-                              @RequestParam(required = false) MultipartFile[] files,
-                              @RequestParam(required = false) String typeDocument,
-                              @RequestParam(required = false) String description,
-                              @RequestParam(required = false) Long medecinId,
-                              @RequestParam(required = false) String returnTo) {
 
-        patient.setRole(Role.PATIENT);
-
-        if (medecinId != null) {
-            Utilisateur medecin = serviceUtilisateur.getUtilisateur(medecinId);
-            patient.setMedecinCreateur(medecin);
-        }
-
-        Utilisateur savedPatient = serviceUtilisateur.saveUtilisateur(patient);
-
-        if (files != null && files.length > 0 && !files[0].isEmpty()) {
-            documentService.saveDocumentsForPatient(files, typeDocument, description, savedPatient.getId());
-        }
-
-        if ("rdv".equals(returnTo)) {
-            return "redirect:/medecin/ajouterRdv?success=patientCreated";
-        }
-
-        return "redirect:/medecin/home?success=patientSaved";
-    }
 }

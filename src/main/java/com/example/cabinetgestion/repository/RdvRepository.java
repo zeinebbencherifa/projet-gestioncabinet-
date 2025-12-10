@@ -22,7 +22,9 @@ public interface RdvRepository extends JpaRepository<Rdv, Long> {
     List<Rdv> findByMedecinIdAndStatus(Long idMedecin, statusrdv status);
 
     // ➤ Liste UNIQUE des patients qui ont pris RDV avec un médecin
-    @Query("SELECT DISTINCT r.patient FROM Rdv r WHERE r.medecin.id = :idMedecin")
-    List<Utilisateur> findPatientsByMedecin(Long idMedecin);
+
+
+
+    List<Utilisateur> findDistinctPatientByMedecinId(Long idMedecin);
 }
 

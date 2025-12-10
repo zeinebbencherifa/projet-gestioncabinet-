@@ -17,19 +17,6 @@ public class ServiceRdv implements IserviceRdv {
     private final UtilisateurRepository utilisateurRepository;
     private final RdvRepository rdvRepository;
 
-    @Override
-    public void saveRdv(Rdv rdv) {
-        // Méthode générique - conserve la logique actuelle pour les modifications
-        if (rdv.getId() == null && rdv.getStatus() == null) {
-            rdv.setStatus(statusrdv.EN_ATTENTE);
-        } else if (rdv.getId() != null && rdv.getStatus() == null) {
-            Rdv existingRdv = rdvRepository.findById(rdv.getId()).orElse(null);
-            if (existingRdv != null) {
-                rdv.setStatus(existingRdv.getStatus());
-            }
-        }
-        rdvRepository.save(rdv);
-    }
 
     // ✅ NOUVELLE MÉTHODE : RDV créé par le MÉDECIN
     @Override
@@ -127,9 +114,8 @@ public class ServiceRdv implements IserviceRdv {
     public List<Rdv> getAllRdv() {
         return rdvRepository.findAll();
     }
-
     @Override
     public List<Utilisateur> getPatientsDuMedecin(Long idMedecin) {
-        return rdvRepository.findPatientsByMedecin(idMedecin);
+        return rdvRepository.findDistinctPatientByMedecinId(idMedecin);
     }
 }
