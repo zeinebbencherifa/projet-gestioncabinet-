@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -31,6 +32,10 @@ import java.time.LocalTime;
         @ManyToOne
         @JoinColumn(name = "medecin_id")
         private Utilisateur medecin;
+    // Ajoutez cette relation si elle n'existe pas
+    @OneToMany(mappedBy = "rdv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ordonnance> ordonnances;
 
 
-    }
+
+}

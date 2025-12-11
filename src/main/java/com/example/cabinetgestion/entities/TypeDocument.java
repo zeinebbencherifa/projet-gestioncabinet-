@@ -4,7 +4,7 @@ package com.example.cabinetgestion.entities;
 
 public enum TypeDocument {
     ORDONNANCE,
-    ANALYSE,
+    RESULTAT_ANALYSE,
     RADIO,
     RAPPORT,
     AUTRE

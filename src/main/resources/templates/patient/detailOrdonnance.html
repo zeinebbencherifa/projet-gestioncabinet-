@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Détail de l'ordonnance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e8f4f8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            color: #1a4d7a;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-back {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #34495e;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2c3e50;
+            transform: translateY(-2px);
+        }
+
+        .btn-print {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-print:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .ordonnance-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .ordonnance-header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            margin-bottom: 30px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-bottom: 15px;
+        }
+
+        .type-badge.rapport {
+            background: linear-gradient(135deg, #00a86b 0%, #00d084 100%);
+        }
+
+        .date-creation {
+            color: #5a6c7d;
+            font-size: 14px;
+        }
+
+        .info-block {
+            background: #f8fcfd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-block h3 {
+            color: #1a4d7a;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-content {
+            color: #2c3e50;
+            line-height: 1.8;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .medecin-signature {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #e8f4f8;
+            text-align: right;
+        }
+
+        .medecin-signature p {
+            color: #2c3e50;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .medecin-signature .nom {
+            font-weight: bold;
+            color: #1a4d7a;
+            font-size: 16px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .header, .actions {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .ordonnance-container {
+                box-shadow: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ordonnance-container {
+                padding: 25px 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📋 Détail du document médical</h1>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <!-- Retour dynamique selon la provenance -->
+            <a th:if="${param.from != null and param.from[0] == 'dashboard'}"
+               th:href="@{/patient/dashboard}"
+               class="btn btn-secondary">⬅️ Retour au tableau de bord</a>
+
+            <a th:if="${param.from == null or param.from[0] == 'liste'}"
+               th:href="@{/patient/ordonnances}"
+               class="btn btn-secondary">⬅️ Retour à la liste</a>
+
+            <!-- OU utilisez le bouton Précédent du navigateur -->
+            <button onclick="window.history.back()" class="btn btn-back" title="Retour à la page précédente">
+                ↩️ Précédent
+            </button>
+
+            <button onclick="window.print()" class="btn btn-print">🖨️ Imprimer</button>
+            <a th:href="@{/patient/ordonnance/telecharger/{id}(id=${ordonnance.id})}"
+               class="btn btn-print"
+               style="background: #00a86b;">
+                📥 Télécharger PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="ordonnance-container">
+        <div class="ordonnance-header">
+            <div class="type-badge"
+                 th:classappend="${ordonnance.type.toString() == 'RAPPORT_MEDICAL'} ? 'rapport' : ''"
+                 th:text="${ordonnance.type.toString() == 'ORDONNANCE'} ? '💊 Ordonnance Médicale' : '📋 Rapport Médical'">
+            </div>
+            <div class="date-creation">
+                Créé le <span th:text="${#temporals.format(ordonnance.dateCreation, 'dd MMMM yyyy à HH:mm')}"></span>
+            </div>
+        </div>
+
+        <!-- Informations du patient -->
+        <div class="info-block">
+            <h3>👤 Patient</h3>
+            <div class="info-content">
+                <strong>Nom :</strong> <span th:text="${ordonnance.patient.prenom + ' ' + ordonnance.patient.nom}"></span><br>
+                <strong>Email :</strong> <span th:text="${ordonnance.patient.email}"></span>
+            </div>
+        </div>
+
+        <!-- Diagnostic -->
+        <div class="info-block" th:if="${ordonnance.diagnostic != null and !ordonnance.diagnostic.isEmpty()}">
+            <h3>🔍 Diagnostic</h3>
+            <div class="info-content" th:text="${ordonnance.diagnostic}"></div>
+        </div>
+
+        <!-- Contenu (Prescription ou Observations) -->
+        <div class="info-block" th:if="${ordonnance.contenu != null and !ordonnance.contenu.isEmpty()}">
+            <h3 th:text="${ordonnance.type.toString() == 'ORDONNANCE'} ? '💊 Prescription' : '📝 Observations médicales'"></h3>
+            <div class="info-content" th:text="${ordonnance.contenu}"></div>
+        </div>
+
+        <!-- Recommandations -->
+        <div class="info-block" th:if="${ordonnance.recommandations != null and !ordonnance.recommandations.isEmpty()}">
+            <h3>💡 Recommandations</h3>
+            <div class="info-content" th:text="${ordonnance.recommandations}"></div>
+        </div>
+
+        <!-- Observations supplémentaires -->
+        <div class="info-block" th:if="${ordonnance.observations != null and !ordonnance.observations.isEmpty()}">
+            <h3>📌 Observations supplémentaires</h3>
+            <div class="info-content" th:text="${ordonnance.observations}"></div>
+        </div>
+
+        <!-- Signature du médecin -->
+        <div class="medecin-signature">
+            <p>Le médecin prescripteur,</p>
+            <p class="nom">Dr. <span th:text="${ordonnance.medecin.prenom + ' ' + ordonnance.medecin.nom}"></span></p>
+            <p th:text="${ordonnance.medecin.email}"></p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

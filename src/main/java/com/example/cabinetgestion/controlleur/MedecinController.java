@@ -1,12 +1,7 @@
 package com.example.cabinetgestion.controlleur;
 
-import com.example.cabinetgestion.entities.Document;
-import com.example.cabinetgestion.entities.Rdv;
-import com.example.cabinetgestion.entities.Role;
-import com.example.cabinetgestion.entities.Utilisateur;
-import com.example.cabinetgestion.service.ServiceRdv;
-import com.example.cabinetgestion.service.ServiceUtilisateur;
-import com.example.cabinetgestion.service.DocumentService;
+import com.example.cabinetgestion.entities.*;
+import com.example.cabinetgestion.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -37,6 +32,9 @@ public class MedecinController {
     private final ServiceUtilisateur serviceUtilisateur;
     private final ServiceRdv serviceRdv;
     private final DocumentService documentService;
+    private final ServiceOrdonance serviceOrdonance;
+    private final PdfService pdfService;
+
 
     // page principale du medecin
     @GetMapping({"/home", "/medecin/home"})
@@ -48,13 +46,11 @@ public class MedecinController {
         Utilisateur medecin = serviceUtilisateur
                 .getUtilisateursByEmail(principal.getName())
                 .get(0);
-        //statistiques
 
-        // RDV EN ATTENTE
         List<Rdv> rdvEnAttente = serviceRdv.getRdvEnAttente(medecin.getId());
-        // RDV du jour
+
         List<Rdv> rdvDuJour = serviceRdv.getRdvDuJour(medecin.getId());
-        // Tous les RDV du médecin
+
         List<Rdv> mesRdv = serviceRdv.getRdvParMedecin(medecin.getId());
 
         // Liste des patients avec recherche
@@ -339,6 +335,146 @@ public class MedecinController {
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+    // Formulaire de création d'ordonnance
+    @GetMapping("/ordonnance/creer")
+    public String creerOrdonnanceForm(@RequestParam(required = false) Long rdvId,
+                                      @RequestParam(required = false) Long patientId,
+                                      Model model,
+                                      Principal principal) {
+
+        Utilisateur medecin = serviceUtilisateur
+                .getUtilisateursByEmail(principal.getName())
+                .get(0);
+
+        Ordonnance ordonnance = new Ordonnance();
+        ordonnance.setMedecin(medecin);
+
+        // Si on vient d'un rdv
+        if (rdvId != null) {
+            Rdv rdv = serviceRdv.getRdv(rdvId);
+            ordonnance.setRdv(rdv);
+            ordonnance.setPatient(rdv.getPatient());
+            model.addAttribute("rdv", rdv);
+        }
+        // Si on sélectionne directement un patient
+        else if (patientId != null) {
+            Utilisateur patient = serviceUtilisateur.getUtilisateur(patientId);
+            ordonnance.setPatient(patient);
+        }
+
+        // Liste des patients pour sélection
+        List<Utilisateur> patients = serviceUtilisateur.getPatientsPourMedecin(medecin.getId());
+
+        model.addAttribute("ordonnance", ordonnance);
+        model.addAttribute("patients", patients);
+
+        return "medecin/creerOrdonnance";
+    }
+    @PostMapping("/ordonnance/save")
+    public String saveOrdonnance(@ModelAttribute Ordonnance ordonnance,
+                                 @RequestParam("patientId") Long patientId,
+                                 @RequestParam(required = false) Long rdvId,
+                                 Principal principal) {
+
+        Utilisateur medecin = serviceUtilisateur
+                .getUtilisateursByEmail(principal.getName())
+                .get(0);
+
+        Utilisateur patient = serviceUtilisateur.getUtilisateur(patientId);
+
+        ordonnance.setMedecin(medecin);
+        ordonnance.setPatient(patient);
+
+        if (rdvId != null) {
+            Rdv rdv = serviceRdv.getRdv(rdvId);
+            ordonnance.setRdv(rdv);
+        }
+
+        serviceOrdonance.creerOrdonnance(ordonnance);
+
+        // Redirection vers la page d'accueil avec message de succès
+        return "redirect:/medecin/home?success=ordonnanceCreated";
+    }
+
+
+
+    // Voir les ordonnances d'un patient
+    @GetMapping("/patient/{patientId}/ordonnances")
+    public String voirOrdonnancesPatient(@PathVariable Long patientId,
+                                         Model model,
+                                         Principal principal) {
+
+        Utilisateur medecin = serviceUtilisateur
+                .getUtilisateursByEmail(principal.getName())
+                .get(0);
+
+        Utilisateur patient = serviceUtilisateur.getUtilisateur(patientId);
+        List<Ordonnance> ordonnances = serviceOrdonance.getOrdonnancesByPatient(patientId);
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("ordonnances", ordonnances);
+        model.addAttribute("medecin", medecin);
+
+        return "medecin/ordonnancesPatient";
+    }
+
+    // Voir le détail d'une ordonnance
+    @GetMapping("/ordonnance/{id}")
+    public String voirOrdonnance(@PathVariable Long id, Model model) {
+        Ordonnance ordonnance = serviceOrdonance.getOrdonnance(id);
+        model.addAttribute("ordonnance", ordonnance);
+        return "medecin/detailOrdonnance";
+    }
+
+    // Supprimer une ordonnance
+    @PostMapping("/ordonnance/supprimer/{id}")
+    public String supprimerOrdonnance(@PathVariable Long id) {
+        serviceOrdonance.supprimerOrdonnance(id);
+        return "redirect:/medecin/home?success=ordonnanceDeleted";
+    }
+
+
+
+
+
+    @GetMapping("/ordonnance/telecharger/{id}")
+    public ResponseEntity<byte[]> telechargerOrdonnancePdf(@PathVariable Long id,
+                                                           Principal principal) {
+        try {
+            Ordonnance ordonnance = serviceOrdonance.getOrdonnance(id);
+
+            // Vérifier que l'ordonnance appartient bien au médecin connecté
+            Utilisateur medecin = serviceUtilisateur
+                    .getUtilisateursByEmail(principal.getName())
+                    .get(0);
+
+            if (!ordonnance.getMedecin().getId().equals(medecin.getId())) {
+                return ResponseEntity.status(403).build();
+            }
+
+            // Générer le PDF
+            byte[] pdfBytes = pdfService.genererPdfOrdonnance(ordonnance);
+
+            // Nom du fichier
+            String typeDoc = ordonnance.getType().toString().equals("ORDONNANCE") ? "Ordonnance" : "Rapport";
+            String fileName = typeDoc + "_" + ordonnance.getPatient().getNom() + "_" +
+                    ordonnance.getDateCreation().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy")) + ".pdf";
+
+            // Configuration des headers HTTP
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", fileName);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 }

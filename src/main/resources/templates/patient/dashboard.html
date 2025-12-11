@@ -387,6 +387,60 @@
             <p>Prenez rendez-vous avec un médecin ci-dessous</p>
         </div>
     </div>
+    <!-- Ajoutez cette section après la section "Mes Rendez-vous" dans patient/dashboard.html -->
+
+    <!-- Section Mes Ordonnances -->
+    <div class="section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="section-title">📋 Mes Ordonnances et Rapports</h2>
+            <a th:href="@{/patient/ordonnances}" class="btn">📄 Voir tout</a>
+        </div>
+
+        <div th:if="${mesOrdonnances != null && !mesOrdonnances.isEmpty()}">
+            <!-- Afficher les 3 dernières ordonnances -->
+            <div class="rdv-list">
+                <div class="rdv-card"
+                     th:each="ord, iterStat : ${mesOrdonnances}"
+                     th:if="${iterStat.index < 3}"
+                     style="border-left-color: #667eea;">
+
+                    <div class="rdv-header" style="margin-bottom: 15px;">
+                        <div>
+                        <span style="font-weight: bold; color: #667eea;"
+                              th:text="${ord.type.toString() == 'ORDONNANCE'} ? '💊 Ordonnance' : '📋 Rapport Médical'">
+                        </span>
+                            <div style="font-size: 13px; color: #5a6c7d; margin-top: 5px;">
+                                Dr. <span th:text="${ord.medecin.prenom + ' ' + ord.medecin.nom}"></span>
+                            </div>
+                        </div>
+                        <span class="rdv-status status-confirme"
+                              th:text="${#temporals.format(ord.dateCreation, 'dd/MM/yyyy')}">
+                    </span>
+                    </div>
+
+                    <div class="rdv-info">
+                        <div class="rdv-detail" th:if="${ord.diagnostic != null and !ord.diagnostic.isEmpty()}">
+                            <span>🔍</span>
+                            <span th:text="${ord.diagnostic}"></span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <a th:href="@{/patient/ordonnance/{id}(id=${ord.id})}"
+                           class="btn"
+                           style="padding: 8px 16px; font-size: 13px;">
+                            👁️ Voir le détail
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="no-rdv" th:if="${mesOrdonnances == null || mesOrdonnances.isEmpty()}">
+            <p>📭 Aucune ordonnance pour le moment</p>
+            <p>Vos ordonnances apparaîtront ici après consultation</p>
+        </div>
+    </div>
 
     <!-- Section Liste des Médecins -->
     <div class="section">

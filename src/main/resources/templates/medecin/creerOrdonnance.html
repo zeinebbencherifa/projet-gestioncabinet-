@@ -65,10 +65,11 @@
         .patient-info h3 {
             margin: 0;
             font-size: 20px;
+            margin-bottom: 10px;
         }
 
         .patient-info p {
-            margin: 8px 0 0;
+            margin: 5px 0;
             opacity: 0.95;
         }
 
@@ -217,15 +218,33 @@
     <h1>📝 Créer une Ordonnance ou un Rapport</h1>
     <p class="subtitle">Remplissez les informations ci-dessous</p>
 
-    <div class="patient-info">
+    <div class="patient-info" th:if="${rdv != null}">
         <h3>👤 Patient(e) : <span th:text="${rdv.patient.prenom} + ' ' + ${rdv.patient.nom}"></span></h3>
         <p>📅 Rendez-vous du <span th:text="${#temporals.format(rdv.dateRdv, 'dd/MM/yyyy')}"></span>
             à <span th:text="${rdv.heureRdv}"></span></p>
         <p>📋 Motif : <span th:text="${rdv.motif}"></span></p>
     </div>
 
+    <div class="patient-info" th:if="${rdv == null and ordonnance.patient != null}">
+        <h3>👤 Patient(e) : <span th:text="${ordonnance.patient.prenom} + ' ' + ${ordonnance.patient.nom}"></span></h3>
+    </div>
+
     <form th:action="@{/medecin/ordonnance/save}" method="post">
-        <input type="hidden" name="rdvId" th:value="${rdv.id}">
+        <input type="hidden" name="rdvId" th:value="${rdv != null ? rdv.id : null}">
+        <input type="hidden" name="patientId" th:value="${rdv != null ? rdv.patient.id : (ordonnance.patient != null ? ordonnance.patient.id : '')}">
+
+        <!-- Sélection du patient si pas de RDV -->
+        <div class="form-group" th:if="${rdv == null}">
+            <label for="patientSelect">Patient <span class="required">*</span></label>
+            <select id="patientSelect" name="patientId" required>
+                <option value="">-- Sélectionner un patient --</option>
+                <option th:each="p : ${patients}"
+                        th:value="${p.id}"
+                        th:text="${p.prenom + ' ' + p.nom}"
+                        th:selected="${ordonnance.patient != null and p.id == ordonnance.patient.id}">
+                </option>
+            </select>
+        </div>
 
         <div class="form-group">
             <label>Type de document <span class="required">*</span></label>

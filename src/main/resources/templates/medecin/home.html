@@ -25,6 +25,8 @@
         .btn-danger:hover { background:#c0392b; transform:translateY(-2px); }
         .btn-warning { background:#f39c12; color:#fff; }
         .btn-warning:hover { background:#d68910; transform:translateY(-2px); }
+        .btn-info { background:#667eea; color:#fff; }
+        .btn-info:hover { background:#5568d3; transform:translateY(-2px); }
         .btn-sm { padding:8px 16px; font-size:13px; }
 
         /* ======= Stats ======= */
@@ -83,10 +85,26 @@
         .empty-state { text-align:center; padding:60px 20px; color:#95a5a6; }
         .empty-state-icon { font-size:64px; margin-bottom:15px; opacity:0.5; }
         .empty-state p { font-size:16px; font-weight:500; }
+
+        /* ======= Success Message ======= */
+        .success-message { background:#00a86b; color:white; padding:15px 25px; border-radius:10px; margin-bottom:25px; text-align:center; font-weight:600; box-shadow:0 2px 10px rgba(0,168,107,0.2); animation:slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- Message de succès -->
+    <div class="success-message" th:if="${param.success}" th:text="${param.success == 'ordonnanceCreated'} ? '✅ Ordonnance créée avec succès !' :
+         (${param.success == 'rdvAdded'} ? '✅ Rendez-vous ajouté avec succès !' :
+         (${param.success == 'patientSaved'} ? '✅ Patient enregistré avec succès !' :
+         (${param.success == 'rdvUpdated'} ? '✅ Rendez-vous modifié avec succès !' :
+         (${param.success == 'patientUpdated'} ? '✅ Patient modifié avec succès !' :
+         (${param.success == 'rdvDeleted'} ? '✅ Rendez-vous supprimé avec succès !' :
+         (${param.success == 'patientDeleted'} ? '✅ Patient supprimé avec succès !' :
+         (${param.success == 'accepted'} ? '✅ Rendez-vous accepté avec succès !' :
+         (${param.success == 'refused'} ? '✅ Rendez-vous refusé !' : '✅ Opération réussie !'))))))))">
+    </div>
+
     <!-- HEADER -->
     <div class="header">
         <div class="header-content">
@@ -122,7 +140,7 @@
         </div>
     </div>
 
-    //rdv en attetnte
+    <!-- RDV EN ATTENTE -->
     <div class="section" th:if="${rdvEnAttente != null and !rdvEnAttente.isEmpty()}">
         <div class="section-header">
             <div class="section-title">
@@ -236,6 +254,12 @@
                 </div>
 
                 <div class="rdv-actions">
+                    <!-- BOUTON CRÉER ORDONNANCE - NOUVEAU -->
+                    <a th:href="@{/medecin/ordonnance/creer(rdvId=${rdv.id})}"
+                       class="btn btn-info btn-sm">
+                        📝 Créer Ordonnance
+                    </a>
+
                     <a th:href="@{/medecin/rdv/edit/{id}(id=${rdv.id})}" class="btn btn-warning btn-sm">✏️ Modifier</a>
                     <form th:action="@{/medecin/rdv/supprimer/{id}(id=${rdv.id})}" method="post" style="display: inline;"
                           onsubmit="return confirm('Supprimer ce rendez-vous ?');">
@@ -251,12 +275,11 @@
         </div>
     </div>
 
-
+    <!-- ========== MES PATIENTS ========== -->
     <div class="section">
         <div class="section-header">
             <div class="section-title">👥 Mes Patients</div>
         </div>
-
 
         <div class="search-box">
             <form id="searchForm" class="search-form" onsubmit="return false;">
@@ -281,6 +304,7 @@
                 <td th:text="${patient.prenom}"></td>
                 <td th:text="${patient.email}"></td>
                 <td style="text-align:center;">
+                    <a th:href="@{/medecin/patient/{id}/ordonnances(id=${patient.id})}" class="btn btn-info btn-sm">📋 Ordonnances</a>
                     <a th:href="@{/medecin/patient/edit/{id}(id=${patient.id})}" class="btn btn-warning btn-sm">✏️ Modifier</a>
                     <form th:action="@{/medecin/patient/supprimer/{id}(id=${patient.id})}" method="post" style="display:inline;" onsubmit="return confirm('Supprimer ce patient ?');">
                         <button type="submit" class="btn btn-danger btn-sm">🗑️ Supprimer</button>
@@ -353,6 +377,7 @@
                         <td>${p.prenom}</td>
                         <td>${p.email}</td>
                         <td style="text-align:center;">
+                            <a href="/medecin/patient/${p.id}/ordonnances" class="btn btn-info btn-sm">📋 Ordonnances</a>
                             <a href="/medecin/patient/edit/${p.id}" class="btn btn-warning btn-sm">✏️ Modifier</a>
                             <form action="/medecin/patient/supprimer/${p.id}" method="post" style="display:inline;" onsubmit="return confirm('Supprimer ce patient ?');">
                                 <button type="submit" class="btn btn-danger btn-sm">🗑️ Supprimer</button>
@@ -363,6 +388,16 @@
                 });
             });
     });
+
+    // Masquer le message de succès après 5 secondes
+    const successMsg = document.querySelector('.success-message');
+    if (successMsg) {
+        setTimeout(() => {
+            successMsg.style.opacity = '0';
+            successMsg.style.transition = 'opacity 0.5s';
+            setTimeout(() => successMsg.remove(), 500);
+        }, 5000);
+    }
 </script>
 </body>
 </html>

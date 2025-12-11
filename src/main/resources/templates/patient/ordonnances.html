@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mes Ordonnances</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e8f4f8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #1a4d7a;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #1a4d7a;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #143d61;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 77, 122, 0.3);
+        }
+
+        .ordonnances-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .ordonnance-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .ordonnance-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+
+        .ordonnance-card.rapport {
+            border-left-color: #00a86b;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .type-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .type-badge.ordonnance {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .type-badge.rapport {
+            background: linear-gradient(135deg, #00a86b 0%, #00d084 100%);
+        }
+
+        .date-badge {
+            background: #f0f7fb;
+            color: #1a4d7a;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .medecin-info {
+            color: #2c3e50;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .diagnostic {
+            background: #f8fcfd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid #667eea;
+        }
+
+        .diagnostic-label {
+            color: #5a6c7d;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .diagnostic-text {
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-detail {
+            flex: 1;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .btn-detail:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .no-ordonnances {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .no-ordonnances-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .no-ordonnances h3 {
+            color: #5a6c7d;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .no-ordonnances p {
+            color: #95a5a6;
+            font-size: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .ordonnances-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📋 Mes Ordonnances et Rapports</h1>
+        <a th:href="@{/patient/dashboard}" class="btn">⬅️ Retour au tableau de bord</a>
+    </div>
+
+    <div th:if="${ordonnances != null && !ordonnances.isEmpty()}">
+        <div class="ordonnances-grid">
+            <div th:each="ord : ${ordonnances}"
+                 class="ordonnance-card"
+                 th:classappend="${ord.type.toString() == 'RAPPORT_MEDICAL'} ? 'rapport' : ''">
+
+                <div class="card-header">
+                    <span class="type-badge"
+                          th:classappend="${ord.type.toString() == 'RAPPORT_MEDICAL'} ? 'rapport' : 'ordonnance'"
+                          th:text="${ord.type.toString() == 'ORDONNANCE'} ? '💊 Ordonnance' : '📋 Rapport'">
+                    </span>
+                    <span class="date-badge"
+                          th:text="${#temporals.format(ord.dateCreation, 'dd/MM/yyyy')}">
+                    </span>
+                </div>
+
+                <div class="medecin-info">
+                    <span>👨‍⚕️</span>
+                    <span>Dr. <span th:text="${ord.medecin.prenom + ' ' + ord.medecin.nom}"></span></span>
+                </div>
+
+                <div class="diagnostic" th:if="${ord.diagnostic != null and !ord.diagnostic.isEmpty()}">
+                    <div class="diagnostic-label">🔍 Diagnostic</div>
+                    <div class="diagnostic-text" th:text="${#strings.abbreviate(ord.diagnostic, 100)}"></div>
+                </div>
+
+                <div class="card-actions">
+                    <a th:href="@{/patient/ordonnance/{id}(id=${ord.id})}"
+                       class="btn-detail">
+                        👁️ Voir le détail complet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="no-ordonnances" th:if="${ordonnances == null || ordonnances.isEmpty()}">
+        <div class="no-ordonnances-icon">📭</div>
+        <h3>Aucune ordonnance pour le moment</h3>
+        <p>Vos ordonnances et rapports médicaux apparaîtront ici après vos consultations</p>
+    </div>
+</div>
+
+</body>
+</html>
